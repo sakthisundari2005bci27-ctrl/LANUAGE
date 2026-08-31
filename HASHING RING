@@ -1,0 +1,51 @@
+#include <iostream>
+#include <map>
+#include <string>
+
+using namespace std;
+
+class ConsistentHashRing {
+private:
+    map<size_t, string> hash_ring;
+    
+    size_t compute_hash_token(const string& key) const {
+        hash_ptr_fn hasher;
+        return hasher(key);
+    }
+    struct hash_ptr_fn {
+        size_t operator()(const string& text) const {
+            hash<string> native_hasher;
+            return native_hasher(text);
+        }
+    };
+
+public:
+    void register_node(const string& node_name) {
+        for (int i = 0; i < 3; i++) { // Generate virtual server replicates to normalize balance tracks
+            size_t token = compute_hash_token(node_name + "_VIRTUAL_" + to_string(i));
+            hash_ring[token] = node_name;
+        }
+    }
+
+    string route_request_to_node(const string& task_key) const {
+        if (hash_ring.empty()) return "No Nodes Available";
+        size_t request_token = compute_hash_token(task_key);
+
+        // Find the first tracking node positioned higher up along the token circle ring
+        auto routing_iterator = hash_ring.lower_bound(request_token);
+        if (routing_iterator == hash_ring.end()) {
+            return hash_ring.begin()->second; // Wrap around to the beginning of the ring
+        }
+        return routing_iterator->second;
+    }
+};
+
+int main() {
+    ConsistentHashRing cluster;
+    cluster.register_node("Server_Node_Alpha");
+    cluster.register_node("Server_Node_Beta");
+
+    cout << "Routing Job #4001 to cluster node: " << cluster.route_request_to_node("Job_ID_4001") << "\n";
+    cout << "Routing Job #9254 to cluster node: " << cluster.route_request_to_node("Job_ID_9254") << "\n";
+    return 0;
+}
