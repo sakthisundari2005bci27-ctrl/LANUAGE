@@ -1,0 +1,50 @@
+#include <iostream>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <vector>
+
+using namespace std;
+
+class ThreadBarrier {
+private:
+    mutex mtx;
+    condition_variable cv;
+    size_t thread_threshold_count;
+    size_t waiting_threads;
+    size_t generation_cycle_count;
+
+public:
+    ThreadBarrier(size_t limit) : thread_threshold_count(limit), waiting_threads(limit), generation_cycle_count(0) {}
+
+    void wait() {
+        unique_lock<mutex> lock(mtx);
+        size_t current_generation = generation_cycle_count;
+
+        if (--waiting_threads == 0) {
+            generation_cycle_count++;
+            waiting_threads = thread_threshold_count;
+            cv.notify_all(); // Release the blocked threads
+        } else {
+            cv.wait(lock, [this, current_generation] { return current_generation != generation_cycle_count; });
+        }
+    }
+};
+
+void execute_task(int thread_id, ThreadBarrier& barrier) {
+    cout << "Thread " << thread_id << " passed Initialization phase.\n";
+    barrier.wait(); // Pause until all threads catch up
+    cout << "Thread " << thread_id << " cleared Sync Blockade Barrier -> Running Execution phase.\n";
+}
+
+int main() {
+    const int WORKERS = 3;
+    ThreadBarrier sync_checkpoint(WORKERS);
+    vector<thread> workers;
+
+    for (int i = 0; i < WORKERS; ++i) {
+        workers.push_back(thread(execute_task, i + 1, ref(sync_checkpoint)));
+    }
+    for (auto& worker : workers) worker.join();
+    return 0;
+}
