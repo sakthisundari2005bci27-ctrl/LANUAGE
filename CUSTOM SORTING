@@ -1,0 +1,31 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <string>
+
+using namespace std;
+
+struct Student {
+    string name;
+    int score;
+    int age;
+};
+
+int main() {
+    vector<Student> students = {
+        {"Alice", 85, 20},
+        {"Bob", 95, 21},
+        {"Charlie", 85, 19}
+    };
+
+    // Sort by higher score first, if equal sort by younger age
+    sort(students.begin(), students.end(), [](const Student& a, const Student& b) {
+        if (a.score != b.score) return a.score > b.score;
+        return a.age < b.age;
+    });
+
+    for (const auto& s : students) {
+        cout << s.name << " - Score: " << s.score << ", Age: " << s.age << "\n";
+    }
+    return 0;
+}
