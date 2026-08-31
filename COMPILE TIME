@@ -1,0 +1,37 @@
+#include <iostream>
+#include <cmath>
+
+using namespace std;
+
+struct Vector3D {
+    double x, y, z;
+    constexpr Vector3D(double x, double y, double z) : x(x), y(y), z(z) {}
+    constexpr Vector3D operator-(const Vector3D& o) const { return {x - o.x, y - o.y, z - o.z}; }
+    constexpr double dot(const Vector3D& o) const { return x * o.x + y * o.y + z * o.z; }
+};
+
+struct Sphere {
+    Vector3D center;
+    double radius;
+
+    constexpr bool intersects(const Vector3D& ray_origin, const Vector3D& ray_dir) const {
+        Vector3D oc = ray_origin - center;
+        double a = ray_dir.dot(ray_dir);
+        double b = 2.0 * oc.dot(ray_dir);
+        double c = oc.dot(oc) - (radius * radius);
+        double discriminant = (b * b) - (4 * a * c);
+        return discriminant >= 0;
+    }
+};
+
+int main() {
+    // These computations are fully executed by the compiler before binary packaging
+    constexpr Sphere target_sphere(Vector3D(0, 0, 10), 3.0);
+    constexpr Vector3D origin(0, 0, 0);
+    constexpr Vector3D direction(0, 0, 1);
+
+    constexpr bool hit = target_sphere.intersects(origin, direction);
+    
+    cout << "Compile-Time Ray-Sphere intersection test result: " << (hit ? "HIT" : "MISS") << "\n";
+    return 0;
+}
