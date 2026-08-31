@@ -1,0 +1,31 @@
+#include <iostream>
+#include <exception>
+#include <string>
+
+using namespace std;
+
+class SystemException : public exception {
+    string message;
+public:
+    SystemException(string msg) : message("System Error: " + msg) {}
+    
+    // Override standard what() parameter tracking
+    const char* what() const noexcept override {
+        return message.c_str();
+    }
+};
+
+void validate_operational_age(int age) {
+    if (age < 18) {
+        throw SystemException("User profile registration rejected due to minor status restrictions.");
+    }
+}
+
+int main() {
+    try {
+        validate_operational_age(15);
+    } catch (const SystemException& e) {
+        cerr << "Caught Exception: " << e.what() << "\n";
+    }
+    return 0;
+}
