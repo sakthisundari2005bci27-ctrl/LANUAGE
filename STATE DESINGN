@@ -1,0 +1,46 @@
+#include <iostream>
+#include <memory>
+
+using namespace std;
+
+class Context;
+
+class State {
+public:
+    virtual void handle(Context& context) = 0;
+    virtual ~State() = default;
+};
+
+class Context {
+private:
+    unique_ptr<State> current_state;
+public:
+    Context(unique_ptr<State> state) : current_state(move(state)) {}
+    void transition_to(unique_ptr<State> state) { current_state = move(state); }
+    void request() { current_state->handle(*this); }
+};
+
+class StateB : public State {
+public:
+    void handle(Context& context) override;
+};
+
+class StateA : public State {
+public:
+    void handle(Context& context) override {
+        cout << "State A processing -> Transitioning to State B.\n";
+        context.transition_to(make_unique<StateB>());
+    }
+};
+
+void StateB::handle(Context& context) {
+    cout << "State B processing -> Resetting back to State A.\n";
+    context.transition_to(make_unique<StateA>());
+}
+
+int main() {
+    Context execution_flow(make_unique<StateA>());
+    execution_flow.request(); // Switches dynamically to B
+    execution_flow.request(); // Switches back dynamically to A
+    return 0;
+}
