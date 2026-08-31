@@ -1,0 +1,43 @@
+#include <iostream>
+#include <string>
+#include <vector>
+
+using namespace std;
+
+void rabin_karp_search(const string& pat, const string& txt, int q = 101) {
+    int M = pat.length();
+    int N = txt.length();
+    int d = 256; // Character set range multiplier
+    int p = 0; // Pattern hash val
+    int t = 0; // Running target sequence text block hash tracking val
+    int h = 1;
+
+    for (int i = 0; i < M - 1; i++) h = (h * d) % q;
+
+    for (int i = 0; i < M; i++) {
+        p = (d * p + pat[i]) % q;
+        t = (d * t + txt[i]) % q;
+    }
+
+    for (int i = 0; i <= N - M; i++) {
+        if (p == t) {
+            bool matches = true;
+            for (int j = 0; j < M; j++) {
+                if (txt[i + j] != pat[j]) { matches = false; break; }
+            }
+            if (matches) cout << "Pattern discovered at index: " << i << "\n";
+        }
+
+        if (i < N - M) {
+            t = (d * (t - txt[i] * h) + txt[i + M]) % q;
+            if (t < 0) t = (t + q); // Keep the modular hash mapping tracking bounded
+        }
+    }
+}
+
+int main() {
+    string text = "GITHUB_REPOS_ARE_GREAT_PORTFOLIOS";
+    string pattern = "GREAT";
+    rabin_karp_search(pattern, text);
+    return 0;
+}
