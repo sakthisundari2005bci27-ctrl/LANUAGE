@@ -1,0 +1,41 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+class DisjointSet {
+    vector<int> parent, rank;
+
+public:
+    DisjointSet(int n) {
+        parent.resize(n);
+        rank.assign(n, 0);
+        for (int i = 0; i < n; i++) parent[i] = i;
+    }
+
+    int find_set(int v) {
+        if (v == parent[v]) return v;
+        return parent[v] = find_set(parent[v]); // Path compression optimization technique
+    }
+
+    void union_sets(int a, int b) {
+        a = find_set(a);
+        b = find_set(b);
+        if (a != b) {
+            if (rank[a] < rank[b]) swap(a, b);
+            parent[b] = a;
+            if (rank[a] == rank[b]) rank[a]++;
+        }
+    }
+};
+
+int main() {
+    DisjointSet dsu(5);
+    dsu.union_sets(0, 1);
+    dsu.union_sets(2, 3);
+    dsu.union_sets(1, 3); // Merges everything into a unified target subset partition
+
+    cout << "Are 0 and 3 connected? " << (dsu.find_set(0) == dsu.find_set(3) ? "Yes" : "No") << "\n";
+    cout << "Are 0 and 4 connected? " << (dsu.find_set(0) == dsu.find_set(4) ? "Yes" : "No") << "\n";
+    return 0;
+}
