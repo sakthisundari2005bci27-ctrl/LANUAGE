@@ -1,0 +1,28 @@
+#include <iostream>
+#include <sstream>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+vector<int> parseInts(const string& str) {
+    vector<int> result;
+    stringstream ss(str);
+    int number;
+    char comma;
+
+    while (ss >> number) {
+        result.push_back(number);
+        ss >> comma;
+    }
+    return result;
+}
+
+int main() {
+    string str = "23,4,56,789";
+    vector<int> integers = parseInts(str);
+    for (int val : integers) {
+        cout << val << "\n";
+    }
+    return 0;
+}
