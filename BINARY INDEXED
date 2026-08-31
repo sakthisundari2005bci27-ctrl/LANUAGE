@@ -1,0 +1,38 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+class FenwickTree {
+    vector<int> tree;
+
+public:
+    FenwickTree(int n) { tree.assign(n + 1, 0); }
+
+    void update(int idx, int delta, int n) {
+        for (; idx <= n; idx += idx & -idx) {
+            tree[idx] += delta;
+        }
+    }
+
+    int query(int idx) {
+        int sum = 0;
+        for (; idx > 0; idx -= idx & -idx) {
+            sum += tree[idx];
+        }
+        return sum;
+    }
+};
+
+int main() {
+    vector<int> arr = {1, 3, 5, 7, 9, 11};
+    int n = arr.size();
+    FenwickTree ft(n);
+
+    for (int i = 0; i < n; i++) ft.update(i + 1, arr[i], n);
+
+    cout << "Prefix sum up to index 3: " << ft.query(4) << "\n"; // 1+3+5+7 = 16
+    ft.update(3, 2, n); // Add 2 to index 3 (value becomes 7)
+    cout << "Prefix sum after update: " << ft.query(4) << "\n"; // Should equal 18
+    return 0;
+}
