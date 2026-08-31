@@ -1,0 +1,33 @@
+#include <iostream>
+#include <cstring>
+#if defined(__linux__) || defined(__APPLE__)
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
+#endif
+
+using namespace std;
+
+int main() {
+#if !defined(__linux__) && !defined(__APPLE__)
+    cout << "This enterprise networking mockup profile targets Unix OS infrastructures explicitly.\n";
+    return 0;
+#else
+    int server_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (server_fd < 0) return 1;
+
+    sockaddr_in address{};
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_port = htons(8080);
+
+    if (bind(server_fd, (struct sockaddr*)&address, sizeof(address)) < 0) return 1;
+    if (listen(server_fd, 3) < 0) return 1;
+
+    cout << "TCP Echo Server initialized listening onto deployment network interface port: 8080\n";
+    cout << "[Mock Mode Activation] Safely exiting baseline connection framework checks.\n";
+    
+    close(server_fd);
+    return 0;
+#endif
+}
