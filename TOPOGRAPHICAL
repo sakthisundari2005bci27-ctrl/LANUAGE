@@ -1,0 +1,48 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+
+using namespace std;
+
+void topological_sort(int V, const vector<vector<int>>& adj) {
+    vector<int> in_degree(V, 0);
+    for (int u = 0; u < V; u++) {
+        for (int v : adj[u]) in_degree[v]++;
+    }
+
+    queue<int> q;
+    for (int i = 0; i < V; i++) {
+        if (in_degree[i] == 0) q.push(i);
+    }
+
+    vector<int> top_order;
+    while (!q.empty()) {
+        int u = q.front();
+        q.pop();
+        top_order.push_back(u);
+
+        for (int v : adj[u]) {
+            if (--in_degree[v] == 0) q.push(v);
+        }
+    }
+
+    if (top_order.size() != V) {
+        cout << "Cycle detected! Topological sort impossible.\n";
+        return;
+    }
+
+    cout << "Topological Sort Schedule Order: ";
+    for (int x : top_order) cout << x << " ";
+    cout << "\n";
+}
+
+int main() {
+    int V = 6;
+    vector<vector<int>> adj(V);
+    adj[5].push_back(2); adj[5].push_back(0);
+    adj[4].push_back(0); adj[4].push_back(1);
+    adj[2].push_back(3); adj[3].push_back(1);
+
+    topological_sort(V, adj);
+    return 0;
+}
