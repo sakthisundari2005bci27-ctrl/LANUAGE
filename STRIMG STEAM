@@ -1,0 +1,20 @@
+#include <sstream>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+vector<int> parseInts(string str) {
+    vector<int> result;
+    stringstream ss(str);
+    int number;
+    char comma;
+
+    // Stream out an integer, then attempt to extract the discarded comma character
+    while (ss >> number) {
+        result.push_back(number);
+        ss >> comma; 
+    }
+    
+    return result;
+}
