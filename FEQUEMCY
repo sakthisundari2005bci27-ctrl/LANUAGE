@@ -1,0 +1,66 @@
+#include <iostream>
+#include <map>
+#include <vector>
+
+using namespace std;
+
+struct Order {
+    int id;
+    int volume;
+    double price;
+};
+
+class OrderBook {
+private:
+    // Bids sorted highest first, Asks sorted lowest first
+    map<double, vector<Order>, greater<double>> buy_bids;
+    map<double, vector<Order>, less<double>> sell_asks;
+
+public:
+    void submit_limit_bid(Order bid) {
+        while (bid.volume > 0 && !sell_asks.empty() && sell_asks.begin()->first <= bid.price) {
+            auto& lowest_ask_tier = sell_asks.begin()->second;
+            while (!lowest_ask_tier.empty() && bid.volume > 0) {
+                auto& active_ask = lowest_ask_tier.front();
+                int traded_volume = min(bid.volume, active_ask.volume);
+                
+                bid.volume -= traded_volume;
+                active_ask.volume -= traded_volume;
+                
+                cout << "Match! Order " << bid.id << " matched with Order " << active_ask.id 
+                     << " for " << traded_volume << " units @ $" << sell_asks.begin()->first << "\n";
+
+                if (active_ask.volume == 0) lowest_ask_tier.erase(lowest_ask_tier.begin());
+            }
+            if (lowest_ask_tier.empty()) sell_asks.erase(sell_asks.begin());
+        }
+        if (bid.volume > 0) buy_bids[bid.price].push_back(bid);
+    }
+
+    void submit_limit_ask(Order ask) {
+        while (ask.volume > 0 && !buy_bids.empty() && buy_bids.begin()->first >= ask.price) {
+            auto& highest_bid_tier = buy_bids.begin()->second;
+            while (!highest_bid_tier.empty() && ask.volume > 0) {
+                auto& active_bid = highest_bid_tier.front();
+                int traded_volume = min(ask.volume, active_bid.volume);
+
+                ask.volume -= traded_volume;
+                active_bid.volume -= traded_volume;
+
+                cout << "Match! Order " << ask.id << " matched with Order " << active_bid.id 
+                     << " for " << traded_volume << " units @ $" << buy_bids.begin()->first << "\n";
+
+                if (active_bid.volume == 0) highest_bid_tier.erase(highest_bid_tier.begin());
+            }
+            if (highest_bid_tier.empty()) buy_bids.erase(buy_bids.begin());
+        }
+        if (ask.volume > 0) sell_asks[ask.price].push_back(ask);
+    }
+};
+
+int main() {
+    OrderBook matcher;
+    matcher.submit_limit_ask({101, 50, 250.00}); // Sell limit
+    matcher.submit_limit_bid({102, 30, 255.00}); // Crosses order spread instantly
+    return 0;
+}
