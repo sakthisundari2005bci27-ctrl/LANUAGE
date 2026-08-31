@@ -1,0 +1,39 @@
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+// Evaluates evaluation pathways for perfect zero-sum strategy tracking
+int minimax(int depth, int node_index, bool is_max, int scores[], int alpha, int beta, int target_depth) {
+    if (depth == target_depth) return scores[node_index];
+
+    if (is_max) {
+        int best = -1e9;
+        for (int i = 0; i < 2; i++) {
+            int val = minimax(depth + 1, node_index * 2 + i, false, scores, alpha, beta, target_depth);
+            best = max(best, val);
+            alpha = max(alpha, best);
+            if (beta <= alpha) break; // Prune branch execution
+        }
+        return best;
+    } else {
+        int best = 1e9;
+        for (int i = 0; i < 2; i++) {
+            int val = minimax(depth + 1, node_index * 2 + i, true, scores, alpha, beta, target_depth);
+            best = min(best, val);
+            beta = min(beta, best);
+            if (beta <= alpha) break; // Prune branch execution
+        }
+        return best;
+    }
+}
+
+int main() {
+    int scores[] = {3, 5, 2, 9, 12, 5, 23, 23};
+    int total_leaf_nodes = sizeof(scores) / sizeof(scores[0]);
+    int target_depth = log2(total_leaf_nodes);
+    
+    cout << "Optimal predicted resolution score via Alpha-Beta: " 
+         << minimax(0, 0, true, scores, -1e9, 1e9, target_depth) << "\n";
+    return 0;
+}
