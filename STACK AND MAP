@@ -1,0 +1,53 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <map>
+#include <sstream>
+
+using namespace std;
+
+int main() {
+    int n = 4, q = 2;
+    vector<string> hrml = {
+        "<tag1 value = \"value\">",
+        "<tag2 name = \"name\">",
+        "</tag2>",
+        "</tag1>"
+    };
+    vector<string> queries = {"tag1~value", "tag1.tag2~name"};
+
+    map<string, string> hrml_map;
+    vector<string> current_tag_stack;
+
+    for (string line : hrml) {
+        if (line.empty()) continue;
+        if (line[1] == '/') {
+            if (!current_tag_stack.empty()) current_tag_stack.pop_back();
+        } else {
+            line = line.substr(1, line.length() - 2);
+            for (char &c : line) if (c == '=') c = ' ';
+            
+            stringstream ss(line);
+            string tag_name;
+            ss >> tag_name;
+
+            string current_path = "";
+            for (const string& parent : current_tag_stack) current_path += parent + ".";
+            current_path += tag_name;
+            current_tag_stack.push_back(tag_name);
+
+            string attr_name, attr_val;
+            while (ss >> attr_name >> attr_val) {
+                if (attr_val.front() == '"') attr_val = attr_val.substr(1);
+                if (attr_val.back() == '"') attr_val = attr_val.substr(0, attr_val.length() - 1);
+                hrml_map[current_path + "~" + attr_name] = attr_val;
+            }
+        }
+    }
+
+    for (const string& query : queries) {
+        if (hrml_map.find(query) != hrml_map.end()) cout << hrml_map[query] << "\n";
+        else cout << "Not Found!\n";
+    }
+    return 0;
+}
