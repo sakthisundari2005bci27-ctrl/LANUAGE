@@ -1,0 +1,31 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+void vectorized_vector_add(float* __restrict__ a, float* __restrict__ b, float* __restrict__ c, int n) {
+    // Inform compiler data points match strict hardware register sizes
+    float* pa = (float*)__builtin_assume_aligned(a, 32);
+    float* pb = (float*)__builtin_assume_aligned(b, 32);
+    float* pc = (float*)__builtin_assume_aligned(c, 32);
+
+    #pragma omp simd
+    for (int i = 0; i < n; ++i) {
+        pc[i] = pa[i] * pb[i];
+    }
+}
+
+int main() {
+    const int SIZE = 8;
+    // Align block targets onto strict hardware memory boundaries
+    alignas(32) float src1[SIZE] = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f};
+    alignas(32) float src2[SIZE] = {2.0f, 2.0f, 2.0f, 2.0f, 2.0f, 2.0f, 2.0f, 2.0f};
+    alignas(32) float destination[SIZE] = {0};
+
+    vectorized_vector_add(src1, src2, destination, SIZE);
+
+    cout << "Hardware explicit SIMD vector arithmetic output pipeline: ";
+    for (int i = 0; i < SIZE; ++i) cout << destination[i] << " ";
+    cout << "\n";
+    return 0;
+}
