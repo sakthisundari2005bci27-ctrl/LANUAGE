@@ -1,0 +1,39 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+using namespace std;
+
+class ArgumentParser {
+private:
+    vector<string> argument_tokens;
+public:
+    ArgumentParser(int argc, char* argv[]) {
+        for (int i = 1; i < argc; ++i) {
+            argument_tokens.push_back(string(argv[i]));
+        }
+    }
+
+    bool has_flag(const string& flag) const {
+        return find(argument_tokens.begin(), argument_tokens.end(), flag) != argument_tokens.end();
+    }
+
+    string retrieve_option_value(const string& option) const {
+        auto it = find(argument_tokens.begin(), argument_tokens.end(), option);
+        if (it != argument_tokens.end() && ++it != argument_tokens.end()) {
+            return *it;
+        }
+        return "";
+    }
+};
+
+int main() {
+    // Simulated entry point parameters mimicking standard shell invocations
+    char* dummy_arguments[] = { (char*)"program_binary", (char*)"--port", (char*)"9000", (char*)"--verbose" };
+    ArgumentParser cli_parser(4, dummy_arguments);
+
+    if (cli_parser.has_flag("--verbose")) cout << "Verbose output flags validated active.\n";
+    cout << "Port variable captured: " << cli_parser.retrieve_option_value("--port") << "\n";
+    return 0;
+}
