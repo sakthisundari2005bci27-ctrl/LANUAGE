@@ -1,0 +1,39 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+typedef vector<vector<long long>> Matrix;
+const long long MOD = 1e9 + 7;
+
+Matrix multiply(const Matrix& A, const Matrix& B) {
+    Matrix C(2, vector<long long>(2, 0));
+    for (int i = 0; i < 2; i++)
+        for (int j = 0; j < 2; j++)
+            for (int k = 0; k < 2; k++)
+                C[i][j] = (C[i][j] + A[i][k] * B[k][j]) % MOD;
+    return C;
+}
+
+Matrix power(Matrix A, long long p) {
+    Matrix res = {{1, 0}, {0, 1}};
+    while (p > 0) {
+        if (p & 1) res = multiply(res, A);
+        A = multiply(A, A);
+        p >>= 1;
+    }
+    return res;
+}
+
+long long get_fibonacci(long long n) {
+    if (n == 0) return 0;
+    Matrix T = {{1, 1}, {1, 0}};
+    T = power(T, n - 1);
+    return T[0][0];
+}
+
+int main() {
+    long long n = 10; // Find 10th Fibonacci number
+    cout << "Fibonacci of " << n << " is: " << get_fibonacci(n) << "\n";
+    return 0;
+}
