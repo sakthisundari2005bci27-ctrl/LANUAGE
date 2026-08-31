@@ -1,0 +1,21 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <execution>
+
+using namespace std;
+
+int main() {
+    // Large tracking load allocation target bounds
+    vector<int> multi_core_dataset = {9, 14, 2, 7, 11, 3, 8, 1, 15, 6, 12, 4, 10, 5, 13};
+
+    // Leverage standard multi-threaded sort instructions using parallel execution policy
+    sort(execution::par, multi_core_dataset.begin(), multi_core_dataset.end());
+
+    cout << "Parallel sorted values pipeline output dump: ";
+    for (int value : multi_core_dataset) {
+        cout << value << " ";
+    }
+    cout << "\n";
+    return 0;
+}
