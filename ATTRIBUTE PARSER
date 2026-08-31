@@ -1,0 +1,85 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <map>
+#include <sstream>
+
+using namespace std;
+
+int main() {
+    // Optimize performance for standard input/output operations
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n, q;
+    if (!(cin >> n >> q)) return 0;
+    cin.ignore(); // Clear newline character from the input buffer
+
+    map<string, string> hrml_map;
+    vector<string> current_tag_stack;
+
+    for (int i = 0; i < n; i++) {
+        string line;
+        getline(cin, line);
+
+        if (line.empty()) continue;
+
+        // Case 1: Closing tag (e.g., </tag1>)
+        if (line[1] == '/') {
+            if (!current_tag_stack.empty()) {
+                current_tag_stack.pop_back();
+            }
+        } 
+        // Case 2: Opening tag (e.g., <tag1 attr = "val">)
+        else {
+            // Remove the outer '<' and '>' characters to easily split components
+            line = line.substr(1, line.length() - 2);
+            
+            // Clean up '=' signs so we can easily stream tokens out of the line
+            for (size_t j = 0; j < line.length(); j++) {
+                if (line[j] == '=') line[j] = ' ';
+            }
+
+            stringstream ss(line);
+            string tag_name;
+            ss >> tag_name;
+
+            // Generate full hierarchical path name (e.g., tag1.tag2)
+            string current_path = "";
+            if (!current_tag_stack.empty()) {
+                for (const string& parent : current_tag_stack) {
+                    current_path += parent + ".";
+                }
+            }
+            current_path += tag_name;
+            
+            // Push the current tag onto our tracking stack
+            current_tag_stack.push_back(tag_name);
+
+            // Parse attributes and values
+            string attr_name, attr_val;
+            while (ss >> attr_name >> attr_val) {
+                // Remove the wrapping double quotes from the value string
+                if (attr_val.front() == '"') attr_val = attr_val.substr(1);
+                if (attr_val.back() == '"') attr_val = attr_val.substr(0, attr_val.length() - 1);
+
+                // Map full path + attribute name to its literal value
+                hrml_map[current_path + "~" + attr_name] = attr_val;
+            }
+        }
+    }
+
+    // Process and evaluate each query instantly
+    for (int i = 0; i < q; i++) {
+        string query;
+        getline(cin, query);
+        
+        if (hrml_map.find(query) != hrml_map.end()) {
+            cout << hrml_map[query] << "\n";
+        } else {
+            cout << "Not Found!\n";
+        }
+    }
+
+    return 0;
+}
