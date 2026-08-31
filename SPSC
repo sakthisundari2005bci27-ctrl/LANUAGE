@@ -1,0 +1,65 @@
+#include <iostream>
+#include <atomic>
+#include <thread>
+#include <vector>
+
+using namespace std;
+
+template <typename T, size_t Capacity>
+class WaitFreeSPSC {
+private:
+    T buffer[Capacity];
+    // Align indices to prevent cache-line thrashing (false sharing)
+    alignas(64) atomic<size_t> head_idx{0};
+    alignas(64) atomic<size_t> tail_idx{0};
+
+public:
+    bool push(const T& item) {
+        size_t current_tail = tail_idx.load(memory_order_relaxed);
+        size_t current_head = head_idx.load(memory_order_acquire);
+
+        if ((current_tail + 1) % Capacity == current_head) {
+            return false; // Buffer is completely full
+        }
+
+        buffer[current_tail] = item;
+        tail_idx.store((current_tail + 1) % Capacity, memory_order_release);
+        return true;
+    }
+
+    bool pop(T& item) {
+        size_t current_head = head_idx.load(memory_order_relaxed);
+        size_t current_tail = tail_idx.load(memory_order_acquire);
+
+        if (current_head == current_tail) {
+            return false; // Buffer is completely empty
+        }
+
+        item = buffer[current_head];
+        head_idx.store((current_head + 1) % Capacity, memory_order_release);
+        return true;
+    }
+};
+
+int main() {
+    WaitFreeSPSC<int, 1024> queue;
+
+    thread producer([&]() {
+        for (int i = 0; i < 5; ++i) {
+            while (!queue.push(i));
+            cout << "Produced Telemetry Event: " << i << "\n";
+        }
+    });
+
+    thread consumer([&]() {
+        int value;
+        for (int i = 0; i < 5; ++i) {
+            while (!queue.pop(value));
+            cout << "Consumed Telemetry Event: " << value << "\n";
+        }
+    });
+
+    producer.join();
+    consumer.join();
+    return 0;
+}
