@@ -1,0 +1,45 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <functional>
+
+using namespace std;
+
+class ProbabilisticBloomFilter {
+private:
+    vector<bool> target_bit_array;
+    size_t array_size;
+
+    size_t generate_hash(const string& key, size_t seed_multiplier) const {
+        size_t computed_hash = 0;
+        for (char ch : key) {
+            computed_hash = (computed_hash * seed_multiplier) + ch;
+        }
+        return computed_hash % array_size;
+    }
+
+public:
+    ProbabilisticBloomFilter(size_t size) : array_size(size) { target_bit_array.assign(size, false); }
+
+    void insert_key(const string& key) {
+        target_bit_array[generate_hash(key, 31)] = true;
+        target_bit_array[generate_hash(key, 131)] = true;
+        target_bit_array[generate_hash(key, 997)] = true;
+    }
+
+    bool contains_key(const string& key) const {
+        if (!target_bit_array[generate_hash(key, 31)]) return false;
+        if (!target_bit_array[generate_hash(key, 131)]) return false;
+        if (!target_bit_array[generate_hash(key, 997)]) return false;
+        return true; // May return true for false-positive configurations, but guarantees exclusion tracking
+    }
+};
+
+int main() {
+    ProbabilisticBloomFilter firewall_filter(5000);
+    firewall_filter.insert_key("malicious_domain.com");
+
+    cout << "Contains 'malicious_domain.com': " << (firewall_filter.contains_key("malicious_domain.com") ? "Yes" : "No") << "\n";
+    cout << "Contains 'trusted_domain.com': " << (firewall_filter.contains_key("trusted_domain.com") ? "Yes" : "No") << "\n";
+    return 0;
+}
