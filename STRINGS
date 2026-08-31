@@ -1,0 +1,28 @@
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+int main() {
+    // Optimize standard input/output operations for execution speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    string a, b;
+    if (cin >> a >> b) {
+        // Line 1: Print the lengths of string 'a' and string 'b'
+        cout << a.size() << " " << b.size() << "\n";
+
+        // Line 2: Print the concatenated result of 'a' and 'b'
+        cout << a + b << "\n";
+
+        // Line 3: Swap the first characters of both strings and print them
+        char temp = a[0];
+        a[0] = b[0];
+        b[0] = temp;
+
+        cout << a << " " << b << "\n";
+    }
+
+    return 0;
+}
