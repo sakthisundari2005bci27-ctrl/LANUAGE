@@ -1,0 +1,57 @@
+#include <iostream>
+#include <vector>
+#include <stack>
+#include <algorithm>
+
+using namespace std;
+
+class TarjanGraph {
+    int V, time;
+    vector<vector<int>> adj;
+    vector<int> disc, low;
+    vector<bool> in_stack;
+    stack<int> st;
+
+    void scc_util(int u) {
+        disc[u] = low[u] = ++time;
+        st.push(u);
+        in_stack[u] = true;
+
+        for (int v : adj[u]) {
+            if (disc[v] == -1) {
+                scc_util(v);
+                low[u] = min(low[u], low[v]);
+            } else if (in_stack[v]) {
+                low[u] = min(low[u], disc[v]);
+            }
+        }
+
+        if (low[u] == disc[u]) {
+            cout << "Discovered isolated SCC partition: ";
+            while (true) {
+                int v = st.top();
+                st.pop();
+                in_stack[v] = false;
+                cout << v << " ";
+                if (u == v) break;
+            }
+            cout << "\n";
+        }
+    }
+
+public:
+    TarjanGraph(int vertices) : V(vertices), time(0), adj(vertices), disc(vertices, -1), low(vertices, -1), in_stack(vertices, false) {}
+    void add_edge(int u, int v) { adj[u].push_back(v); }
+    void find_scc() {
+        for (int i = 0; i < V; i++) if (disc[i] == -1) scc_util(i);
+    }
+};
+
+int main() {
+    TarjanGraph g(5);
+    g.add_edge(1, 0); g.add_edge(0, 2);
+    g.add_edge(2, 1); g.add_edge(0, 3);
+    g.add_edge(3, 4);
+    g.find_scc();
+    return 0;
+}
