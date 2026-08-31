@@ -1,0 +1,45 @@
+#include <iostream>
+#include <mutex>
+
+using namespace std;
+
+class DatabaseConnection {
+private:
+    static DatabaseConnection* instance;
+    static mutex mtx;
+    
+    // Private constructor restricts external allocation operations
+    DatabaseConnection() { cout << "Database instance safely initialized initialization.\n"; }
+
+public:
+    // Delete copy assignment operations
+    DatabaseConnection(const DatabaseConnection& obj) = delete;
+    void operator=(const DatabaseConnection& obj) = delete;
+
+    static DatabaseConnection* get_instance() {
+        if (instance == nullptr) {
+            lock_guard<mutex> lock(mtx); // Double-checked thread locking mechanism
+            if (instance == nullptr) {
+                instance = new DatabaseConnection();
+            }
+        }
+        return instance;
+    }
+
+    void execute_query(string query) {
+        cout << "Executing: " << query << "\n";
+    }
+};
+
+DatabaseConnection* DatabaseConnection::instance = nullptr;
+mutex DatabaseConnection::mtx;
+
+int main() {
+    DatabaseConnection* db1 = DatabaseConnection::get_instance();
+    db1->execute_query("SELECT * FROM users;");
+
+    DatabaseConnection* db2 = DatabaseConnection::get_instance();
+    // db1 and db2 point to the exact same continuous instance location address
+    cout << "Addresses matching: " << (db1 == db2 ? "Yes" : "No") << "\n";
+    return 0;
+}
