@@ -1,0 +1,39 @@
+
+#include <iostream>
+#include <functional>
+
+using namespace std;
+
+template <typename T>
+class PipelineComposer {
+private:
+    function<T(T)> functional_chain;
+
+public:
+    PipelineComposer(function<T(T)> base_fn) : functional_chain(base_fn) {}
+
+    // Overload the pipe operator to daisy-chain execution transforms cleanly
+    PipelineComposer<T> operator|(function<T(T)> next_link) {
+        auto shared_chain = this->functional_chain;
+        return PipelineComposer<T>([shared_chain, next_link](T inputs) {
+            return next_link(shared_chain(inputs));
+        });
+    }
+
+    T process(T initial_value) { return functional_chain(initial_value); }
+};
+
+int main() {
+    auto multiply_by_two = [](int x) { return x * 2; };
+    auto append_offset = [](int x) { return x + 10; };
+    auto square_result = [](int x) { return x * x; };
+
+    PipelineComposer<int> math_pipeline(multiply_by_two);
+    
+    // Combine operations into a functional pipeline map
+    int final_score = (math_pipeline | append_offset | square_result).process(5);
+
+    // Flow: (5 * 2) = 10 -> (10 + 10) = 20 -> (20 * 20) = 400
+    cout << "Functional data processing sequence resolution: " << final_score << "\n";
+    return 0;
+}
