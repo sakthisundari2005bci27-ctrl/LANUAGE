@@ -1,0 +1,40 @@
+#include <iostream>
+#include <vector>
+#include <cstddef>
+
+using namespace std;
+
+template <typename T>
+class ArenaAllocator {
+public:
+    typedef T value_type;
+
+    ArenaAllocator() noexcept {}
+    template <typename U> ArenaAllocator(const ArenaAllocator<U>&) noexcept {}
+
+    T* allocate(size_t n) {
+        if (auto p = static_cast<T*>(malloc(n * sizeof(T)))) {
+            cout << "Allocating " << n << " element(s) of size " << sizeof(T) << "\n";
+            return p;
+        }
+        throw bad_alloc();
+    }
+
+    void deallocate(T* p, size_t n) noexcept {
+        cout << "Deallocating " << n << " element(s)\n";
+        free(p);
+    }
+};
+
+template <typename T, typename U>
+bool operator==(const ArenaAllocator<T>&, const ArenaAllocator<U>&) { return true; }
+template <typename T, typename U>
+bool operator!=(const ArenaAllocator<T>&, const ArenaAllocator<U>&) { return false; }
+
+int main() {
+    // Inject the custom block allocator inside a standard vector framework
+    vector<int, ArenaAllocator<int>> custom_vec;
+    custom_vec.push_back(10);
+    custom_vec.push_back(20);
+    return 0;
+}
