@@ -1,0 +1,30 @@
+#include <iostream>
+#include <memory>
+
+using namespace std;
+
+class Entity {
+public:
+    Entity() { cout << "Entity Created\n"; }
+    ~Entity() { cout << "Entity Destroyed\n"; }
+    void perform_action() { cout << "Action executed successfully.\n"; }
+};
+
+int main() {
+    cout << "--- Unique Pointer Scope ---\n";
+    {
+        unique_ptr<Entity> unique_ent = make_unique<Entity>();
+        unique_ent->perform_action();
+    } // Memory is safely and automatically cleaned up here
+
+    cout << "\n--- Shared Pointer Scope ---\n";
+    shared_ptr<Entity> shared_root;
+    {
+        shared_ptr<Entity> shared_sub = make_shared<Entity>();
+        shared_root = shared_sub; // Reference count becomes 2
+        cout << "Reference Count: " << shared_root.use_count() << "\n";
+    } // shared_sub leaves scope, count goes back down to 1
+    cout << "Reference Count after inner scope: " << shared_root.use_count() << "\n";
+
+    return 0;
+} // Memory is cleaned up here when shared_root goes out of bounds
