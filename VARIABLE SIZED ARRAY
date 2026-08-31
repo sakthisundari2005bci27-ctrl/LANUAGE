@@ -1,0 +1,36 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+int main() {
+    // Optimize standard input/output streams for competitive programming platforms
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n, q;
+    if (!(cin >> n >> q)) return 0;
+
+    // Create a vector containing 'n' sub-vectors
+    vector<vector<int>> a(n);
+
+    // Read and construct each variable-length array
+    for (int i = 0; i < n; i++) {
+        int k;
+        cin >> k;
+        a[i].resize(k); // Resize the inner vector to hold exactly 'k' elements
+        for (int j = 0; j < k; j++) {
+            cin >> a[i][j];
+        }
+    }
+
+    // Process and answer the 'q' queries instantly
+    for (int query = 0; query < q; query++) {
+        int i, j;
+        cin >> i >> j;
+        // Direct O(1) random access lookup
+        cout << a[i][j] << "\n";
+    }
+
+    return 0;
+}
