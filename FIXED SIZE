@@ -1,0 +1,58 @@
+#include <iostream>
+#include <vector>
+#include <cstddef>
+
+using namespace std;
+
+template <typename T, size_t BlockCount>
+class FixedObjectPool {
+private:
+    union Node {
+        char storage[sizeof(T)];
+        Node* next_free_block;
+    };
+
+    vector<Node> pool_memory;
+    Node* head_free_pointer;
+
+public:
+    FixedObjectPool() {
+        pool_memory.resize(BlockCount);
+        for (size_t i = 0; i < BlockCount - 1; ++i) {
+            pool_memory[i].next_free_block = &pool_memory[i + 1];
+        }
+        pool_memory[BlockCount - 1].next_free_block = nullptr;
+        head_free_pointer = &pool_memory[0];
+    }
+
+    T* allocate_block() {
+        if (!head_free_pointer) throw bad_alloc();
+        Node* available_node = head_free_pointer;
+        head_free_pointer = head_free_pointer->next_free_block;
+        return reinterpret_cast<T*>(available_node->storage);
+    }
+
+    void deallocate_block(T* ptr) {
+        if (!ptr) return;
+        Node* returned_node = reinterpret_cast<Node*>(ptr);
+        returned_node->next_free_block = head_free_pointer;
+        head_free_pointer = returned_node;
+    }
+};
+
+struct OrderPacket {
+    int order_id;
+    double execution_price;
+};
+
+int main() {
+    FixedObjectPool<OrderPacket, 1024> engine_pool;
+
+    OrderPacket* order1 = engine_pool.allocate_block();
+    order1->order_id = 7001;
+    order1->execution_price = 142.50;
+
+    cout << "Allocated Order ID: " << order1->order_id << " inside memory pool layer.\n";
+    engine_pool.deallocate_block(order1);
+    return 0;
+}
