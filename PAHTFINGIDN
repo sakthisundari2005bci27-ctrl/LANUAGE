@@ -1,0 +1,67 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <cmath>
+
+using namespace std;
+
+struct Cell {
+    int x, y, g, h, f;
+    Cell(int x, int y, int g, int h) : x(x), y(y), g(g), h(h), f(g + h) {}
+};
+
+struct CompareF {
+    bool operator()(const Cell& a, const Cell& b) { return a.f > b.f; }
+};
+
+int calculate_heuristic(int x1, int y1, int x2, int y2) {
+    return abs(x1 - x2) + abs(y1 - y2); // Manhattan Distance Formula
+}
+
+void a_star_search(const vector<vector<int>>& grid, pair<int, int> src, pair<int, int> dest) {
+    int rows = grid.size();
+    int cols = grid[0].size();
+    
+    priority_queue<Cell, vector<Cell>, CompareF> open_list;
+    vector<vector<bool>> closed_list(rows, vector<bool>(cols, false));
+
+    open_list.push(Cell(src.first, src.second, 0, calculate_heuristic(src.first, src.second, dest.first, dest.second)));
+
+    int dx[] = {-1, 1, 0, 0};
+    int dy[] = {0, 0, -1, 1};
+
+    while (!open_list.empty()) {
+        Cell curr = open_list.top();
+        open_list.pop();
+
+        if (curr.x == dest.first && curr.y == dest.second) {
+            cout << "Destination Path Found successfully at cost: " << curr.g << "\n";
+            return;
+        }
+
+        closed_list[curr.x][curr.y] = true;
+
+        for (int i = 0; i < 4; i++) {
+            int nx = curr.x + dx[i];
+            int ny = curr.y + dy[i];
+
+            if (nx >= 0 && nx < rows && ny >= 0 && ny < cols && !closed_list[nx][ny] && grid[nx][ny] == 1) {
+                int next_g = curr.g + 1;
+                int next_h = calculate_heuristic(nx, ny, dest.first, dest.second);
+                open_list.push(Cell(nx, ny, next_g, next_h));
+            }
+        }
+    }
+    cout << "Target destination path blocked or unreachable.\n";
+}
+
+int main() {
+    // 1 represents walkable path, 0 represents layout block obstacle
+    vector<vector<int>> grid = {
+        {1, 1, 1, 0},
+        {0, 0, 1, 0},
+        {1, 1, 1, 1}
+    };
+    a_star_search(grid, {0, 0}, {2, 3});
+    return 0;
+}
